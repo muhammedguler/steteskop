@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 	w.show();
 	w.resize(FITMIN(600),FITMIN(400));
 	w.move(QApplication::desktop()->availableGeometry().center()-w.rect().center());
+	w.setWindowTitle("Steteskop Plot");
 
 	return a.exec();
 }
