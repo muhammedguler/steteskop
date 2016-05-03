@@ -20,7 +20,6 @@ class MainWidget : public QWidget
 		QCustomPlot* m_pFftPlot;
 		QTimer* m_pDataTimer;
 		QLabel* m_pStatusLabel;
-		QFile* m_pDataReader;
 		Mcp3208* m_pMcp3208;
 
 	public:

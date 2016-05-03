@@ -1,10 +1,7 @@
 #include <mainwidget.h>
-#include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <qcustomplot.h>
-#include <QFile>
 #include <QDateTime>
-#include <QDebug>
 #include <qfouriertransformer.h>
 #include <mcp3208.h>
 
@@ -16,16 +13,10 @@ MainWidget::MainWidget(QWidget *parent)
 	, m_pFftPlot(new QCustomPlot())
 	, m_pDataTimer(new QTimer(this))
 	, m_pStatusLabel(new QLabel())
-	, m_pDataReader(new QFile("../data/data.txt"))
 	, m_pMcp3208(new Mcp3208())
 {
 	m_pMcp3208->initMcp3208();
 
-	if (!m_pDataReader->open(QIODevice::ReadOnly))
-	{
-		qWarning("File couldn't open!");
-		std::exit(0);
-	}
 	m_pVBoxLayout->setMargin(0);
 	setLayout(m_pVBoxLayout);
 	m_pVBoxLayout->addWidget(m_pRealTimePlot);
@@ -140,9 +131,7 @@ void MainWidget::realtimeDataSlot()
 	static double lastPointKey = 0;
 	if (key-lastPointKey > 0.01) // at most add point every 10 ms
 	{
-		for (int i=0;i<5;i++)
-			QString(m_pDataReader->readLine());
-		double value0 = QString(m_pDataReader->readLine()).toDouble();
+		double value0 = m_pMcp3208->readMcp3208(0);
 		// add data to lines:
 		m_pRealTimePlot->graph(0)->addData(key, value0);
 		// set data of dots:
@@ -165,10 +154,9 @@ void MainWidget::realtimeDataSlot()
 	if (key-lastFpsKey > 2) // average fps over 2 seconds
 	{
 		m_pStatusLabel->setText(
-					QString("%1 FPS, Total Data points: %2 | ADC Val: %3")
+					QString("%1 FPS, Total Data points: %2")
 					.arg(frameCount/(key-lastFpsKey), 0, 'f', 0)
-					.arg(m_pRealTimePlot->graph(0)->data()->count())
-					.arg(m_pMcp3208->readMcp3208(0)));
+					.arg(m_pRealTimePlot->graph(0)->data()->count()));
 		lastFpsKey = key;
 		frameCount = 0;
 	}
@@ -177,5 +165,4 @@ void MainWidget::realtimeDataSlot()
 
 MainWidget::~MainWidget()
 {
-	m_pDataReader->close();
 }
