@@ -2,25 +2,24 @@
 # Steteskop Project QMAKE File
 #-------------------------------------------------
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+include($$PWD/lib/fft/fft.pri)
+include($$PWD/lib/mcp3208/mcp3208.pri)
+include($$PWD/lib/qcustomplot/qcustomplot.pri)
 
-QT              += core gui printsupport
 TEMPLATE         = app
 TARGET           = steteskop
+QT              += core gui printsupport
 CONFIG          += c++11 release
-INCLUDEPATH     += $$PWD/src/include
-MOC_DIR          = $$PWD/tmp/moc
-OBJECTS_DIR      = $$PWD/tmp/obj
-RCC_DIR          = $$PWD/tmp/qrc
-DESTDIR          = $$PWD
+DEPENDPATH      += $$PWD
+INCLUDEPATH     += $$PWD
+MOC_DIR          = $$PWD/build/moc
+OBJECTS_DIR      = $$PWD/build/obj
+RCC_DIR          = $$PWD/build/qrc
+DESTDIR          = $$PWD/build
 
-SOURCES         += $$PWD/src/src/main.cpp \
-                   $$PWD/src/src/mainwidget.cpp \
-                   $$PWD/src/src/fit.cpp \
-				   $$PWD/src/src/qcustomplot.cpp
+SOURCES         += $$PWD/main.cpp \
+                   $$PWD/mainwidget.cpp 
 
-HEADERS         += $$PWD/src/include/mainwidget.h \
-                   $$PWD/src/include/fit.h \
-				   $$PWD/src/include/qcustomplot.h
+HEADERS         += $$PWD/mainwidget.h
 
-#QMAKE_POST_LINK += rm -rf $$PWD/tmp \
-#						  $$PWD/Makefile
+QMAKE_POST_LINK += mv Makefile build
