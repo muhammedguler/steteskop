@@ -51,76 +51,10 @@ MainWidget::MainWidget(QWidget *parent)
 	m_pDataTimer->start(0); // Interval 0 means to refresh as fast as possible
 
 
-//	/***************************************************************************************************/
-//	m_pFftPlot->addGraph(); // blue line
-//	m_pFftPlot->graph(0)->setPen(QPen(Qt::blue));
-//	m_pFftPlot->graph(0)->setBrush(QBrush(QColor(240, 255, 200)));
-//	m_pFftPlot->graph(0)->setAntialiasedFill(false);
-
-//	m_pFftPlot->addGraph(); // blue dot
-//	m_pFftPlot->graph(1)->setPen(QPen(Qt::blue));
-//	m_pFftPlot->graph(1)->setLineStyle(QCPGraph::lsNone);
-//	m_pFftPlot->graph(1)->setScatterStyle(QCPScatterStyle::ssDisc);
-
-//	m_pFftPlot->xAxis->setAutoTickStep(false);
-//	m_pFftPlot->axisRect()->setupFullAxesBox();
-//	//**********************************************************
-//	const int SIZE = 4096;
-//	float samples[SIZE];
-//	float fft[SIZE];
-
-//	//Semple ları dosyadan oku
-//	QFile fi("../data/data.txt");
-//	if (!fi.open(QFile::ReadOnly | QFile::Truncate))
-//		qWarning("Dosya Acilamadi");
-//	QTextStream st(&fi);
-//	for(int i = 0; i < SIZE; ++i)
-//		 samples[i] = 1.05*qSin(2*M_PI*(i/(float)SIZE)*50)+0.75*qSin(2*M_PI*(i/(float)SIZE)*80);
-//	//st >> samples[i];
-//	fi.close();
-
-//	QFourierTransformer transformer;
-//	//Setting a fixed size for the transformation
-//	if(transformer.setSize(SIZE) == QFourierTransformer::VariableSize)
-//	{
-//		qDebug() << ("This size is not a default fixed size of QRealFourier. Using a variable size instead.\n");
-//	}
-//	else if(transformer.setSize(SIZE) == QFourierTransformer::InvalidSize)
-//	{
-//		print("Invalid FFT size.\n");
-//		return;
-//	}
-
-//	transformer.forwardTransform(samples, fft);
-
-//	QVector<double> xf;
-//	for (int i=0;i<500;i++)
-//		xf.append(i);
-
-//	QVector<double> yf;
-//	for (int i=0;i<SIZE/2.0-1;i++)
-//		yf.append((2/(float)SIZE)*qSqrt(fft[i]*fft[i]+fft[SIZE/2+i]*fft[SIZE/2+i]));
-
-
-//	m_pFftPlot->addGraph();
-//	m_pFftPlot->graph(0)->setData(xf, yf);
-//	m_pFftPlot->xAxis->setLabel("Frekans");
-//	m_pFftPlot->yAxis->setLabel("Genlik");
-//	m_pFftPlot->xAxis->setRange(0, 100);
-//	m_pFftPlot->yAxis->setRange(0, 1.1);
-//	m_pFftPlot->xAxis->setTickStep(10);
-//	m_pFftPlot->replot();
-
-
-
-//	QFile fi2("/home/kozmon/Masaüstü/out.txt");
-//	if (!fi2.open(QFile::WriteOnly | QFile::Truncate))
-//		qWarning("LAAAAAAN");
-//	QTextStream sts(&fi2);
-//	for(int i = 0; i < SIZE; ++i)
-//		sts << fft[i] << "\n";
-//	fi.close();
-
+	/***************************************************************************************************/
+	m_pFftPlot->addGraph();
+	m_pFftPlot->xAxis->setLabel("Frekans");
+	m_pFftPlot->yAxis->setLabel("Genlik");
 }
 
 
@@ -146,6 +80,44 @@ void MainWidget::realtimeDataSlot()
 	// make key axis range scroll with the data (at a constant range size of 8):
 	m_pRealTimePlot->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
 	m_pRealTimePlot->replot();
+
+	if (key - lastPointKey > 8.0)
+	{
+		const int SIZE = 256;
+		float samples[SIZE];
+		for (int i=0;i<SIZE;i++)
+			samples[i] = m_pRealTimePlot->graph(0)->data()->values().at(i).value;
+		float fft[SIZE];
+
+		QFourierTransformer transformer;
+		//Setting a fixed size for the transformation
+		if(transformer.setSize(SIZE) == QFourierTransformer::VariableSize)
+		{
+			qDebug() << ("This size is not a default fixed size of QRealFourier. Using a variable size instead.\n");
+		}
+		else if(transformer.setSize(SIZE) == QFourierTransformer::InvalidSize)
+		{
+			qDebug() << ("Invalid FFT size.\n");
+			return;
+		}
+
+		transformer.forwardTransform(samples, fft);
+
+		QVector<double> xf;
+		for (int i=0;i<500;i++)
+			xf.append(i);
+
+		QVector<double> yf;
+		for (int i=0;i<SIZE/2.0-1;i++)
+			yf.append((2/(float)SIZE)*qSqrt(fft[i]*fft[i]+fft[SIZE/2+i]*fft[SIZE/2+i]));
+
+		m_pFftPlot->graph(0)->setData(xf, yf);
+
+		m_pFftPlot->xAxis->setRange(0, 100);
+		m_pFftPlot->yAxis->setRange(0, 4095);
+		m_pFftPlot->xAxis->setTickStep(10);
+		m_pFftPlot->replot();
+	}
 
 	// calculate frames per second:
 	static double lastFpsKey;
