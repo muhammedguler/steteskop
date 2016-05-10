@@ -55,6 +55,10 @@ MainWidget::MainWidget(QWidget *parent)
 	m_pFftPlot->addGraph();
 	m_pFftPlot->xAxis->setLabel("Frekans");
 	m_pFftPlot->yAxis->setLabel("Genlik");
+	// make left and bottom axes transfer their ranges to right and top axes:
+	connect(m_pFftPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_pFftPlot->xAxis2, SLOT(setRange(QCPRange)));
+	connect(m_pFftPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_pFftPlot->yAxis2, SLOT(setRange(QCPRange)));
+
 }
 
 
@@ -80,8 +84,9 @@ void MainWidget::realtimeDataSlot()
 	// make key axis range scroll with the data (at a constant range size of 8):
 	m_pRealTimePlot->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
 	m_pRealTimePlot->replot();
-
-	if (key - lastPointKey > 8.0)
+	
+	static double lastPointKey2 = key;
+	if (key - lastPointKey2 > 8.0)
 	{
 		const int SIZE = 256;
 		float samples[SIZE];
@@ -113,10 +118,11 @@ void MainWidget::realtimeDataSlot()
 
 		m_pFftPlot->graph(0)->setData(xf, yf);
 
-		m_pFftPlot->xAxis->setRange(0, 100);
+		m_pFftPlot->xAxis->setRange(0, 70);
 		m_pFftPlot->yAxis->setRange(0, 4095);
 		m_pFftPlot->xAxis->setTickStep(10);
 		m_pFftPlot->replot();
+		lastPointKey2 = key;
 	}
 
 	// calculate frames per second:
@@ -138,3 +144,4 @@ void MainWidget::realtimeDataSlot()
 MainWidget::~MainWidget()
 {
 }
+
